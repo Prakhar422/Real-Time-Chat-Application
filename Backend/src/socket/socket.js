@@ -13,6 +13,32 @@ const initializeSocket = (io) => {
           isOnline: true,
         });
 
+        const pendingMessages = await Message.find({
+          receiver: userId,
+          status: "sent",
+        });
+
+        await Message.updateMany(
+          {
+            receiver: userId,
+            status: "sent",
+          },
+          {
+            status: "delivered",
+          },
+        );
+
+        for (const message of pendingMessages) {
+          const senderUser = await User.findById(message.sender);
+
+          if (senderUser?.socketId) {
+            io.to(senderUser.socketId).emit("message_status", {
+              messageId: message._id.toString(),
+              status: "delivered",
+            });
+          }
+        }
+
         console.log(`${userId} joined`);
       } catch (error) {
         console.log(error);
@@ -39,9 +65,15 @@ const initializeSocket = (io) => {
         if (receiverUser && receiverUser.socketId) {
           io.to(receiverUser.socketId).emit("receive_message", newMessage);
 
-          // Update status
           newMessage.status = "delivered";
           await newMessage.save();
+          
+
+          // Notify sender that message is delivered
+          socket.emit("message_status", {
+            messageId: newMessage._id,
+            status: "delivered",
+          });
         }
 
         // Send confirmation back to sender
@@ -53,23 +85,63 @@ const initializeSocket = (io) => {
 
     //Typing event
     socket.on("typing", async ({ sender, receiver }) => {
-  const receiverUser = await User.findById(receiver);
+      const receiverUser = await User.findById(receiver);
 
-  if (receiverUser?.socketId) {
-    io.to(receiverUser.socketId).emit("typing", {
-      sender,
+      if (receiverUser?.socketId) {
+        io.to(receiverUser.socketId).emit("typing", {
+          sender,
+        });
+      }
     });
-  }
-});
 
     //Stop Typing event
     socket.on("stop_typing", async ({ sender, receiver }) => {
-  const receiverUser = await User.findById(receiver);
+      const receiverUser = await User.findById(receiver);
 
-  if (receiverUser?.socketId) {
-    io.to(receiverUser.socketId).emit("stop_typing", {
-      sender,
+      if (receiverUser?.socketId) {
+        io.to(receiverUser.socketId).emit("stop_typing", {
+          sender,
+        });
+      }
     });
+
+    // Read Messages event
+socket.on("read_messages", async ({ sender, receiver }) => {
+  try {
+    // Get all delivered messages
+    const messages = await Message.find({
+      sender,
+      receiver,
+      status: "delivered",
+    });
+
+    // Update them to read
+    await Message.updateMany(
+      {
+        sender,
+        receiver,
+        status: "delivered",
+      },
+      {
+        status: "read",
+      }
+    );
+
+    // Notify sender
+    const senderUser = await User.findById(sender);
+
+    if (senderUser?.socketId) {
+      for (const message of messages) {
+        io.to(senderUser.socketId).emit("message_status", {
+          messageId: message._id.toString(),
+          status: "read",
+        });
+      }
+    }
+
+    
+  } catch (error) {
+    console.log(error);
   }
 });
 

@@ -63,6 +63,15 @@ function Chat() {
     fetchMessages();
   }, [selectedUserId]);
 
+  useEffect(() => {
+  if (!selectedUser) return;
+
+  socket.emit("read_messages", {
+    sender: selectedUser._id,
+    receiver: currentUser._id,
+  });
+}, [selectedUser, currentUser]);
+
   //send message
   const sendMessage = (text) => {
     if (!selectedUserId || !text.trim()) return;
@@ -76,7 +85,19 @@ function Chat() {
 
   useEffect(() => {
   const handleReceiveMessage = (message) => {
+    console.log(message);
     setMessages((prev) => [...prev, message]);
+
+    if (
+      selectedUser &&
+      (message.sender === selectedUser._id ||
+        message.sender?._id === selectedUser._id)
+    ) {
+      socket.emit("read_messages", {
+        sender: selectedUser._id,
+        receiver: currentUser._id,
+      });
+    }
   };
 
   socket.on("receive_message", handleReceiveMessage);
@@ -84,7 +105,7 @@ function Chat() {
   return () => {
     socket.off("receive_message", handleReceiveMessage);
   };
-}, []);
+}, [selectedUser, currentUser]);
 
   useEffect(() => {
   const handleMessageSent = (message) => {
@@ -119,6 +140,25 @@ useEffect(() => {
     socket.off("stop_typing", handleStopTyping);
   };
 }, [selectedUser]);
+
+useEffect(() => {
+  const handleMessageStatus = ({ messageId, status }) => {
+    
+    setMessages((prev) =>
+      prev.map((message) =>
+        message._id === messageId
+          ? { ...message, status }
+          : message
+      )
+    );
+  };
+
+  socket.on("message_status", handleMessageStatus);
+
+  return () => {
+    socket.off("message_status", handleMessageStatus);
+  };
+}, []);
 
   return (
     <div className="flex h-screen bg-slate-100">

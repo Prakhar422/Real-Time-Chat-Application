@@ -29,7 +29,7 @@ function MessageInput({ sendMessage, currentUser, selectedUser, }) {
 
   if (!currentUser || !selectedUser) return;
 
-  console.log("Emitting typing event:")
+  
   socket.emit("typing", {
     sender: currentUser._id,
     receiver: selectedUser._id,

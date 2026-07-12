@@ -22,16 +22,30 @@ const own = senderId === currentUser._id;
   >
     <p>{message.message}</p>
 
-    <p
-      className={`text-xs mt-2 ${
-        own ? "text-blue-100" : "text-gray-400"
-      }`}
-    >
-      {new Date(message.createdAt).toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      })}
-    </p>
+    <div className="flex items-center justify-end gap-2 mt-2">
+  <p
+    className={`text-xs ${
+      own ? "text-blue-100" : "text-gray-400"
+    }`}
+  >
+    {new Date(message.createdAt).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    })}
+  </p>
+
+  {own && (
+    <span className="text-xs">
+      {message.status === "sent" && "✓"}
+
+      {message.status === "delivered" && "✓✓"}
+
+      {message.status === "read" && (
+        <span className="text-cyan-300 font-bold">✓✓</span>
+      )}
+    </span>
+  )}
+</div>
   </div>
 </div>
   );
