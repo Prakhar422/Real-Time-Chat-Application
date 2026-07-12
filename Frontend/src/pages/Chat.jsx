@@ -10,7 +10,7 @@ function Chat() {
   const [users, setUsers] = useState([]);
   const [selectedUserId, setselectedUserId] = useState(null);
   const [messages, setMessages] = useState([]);
-  
+  const [typing, setTyping] = useState(false);
 
   const selectedUser = users.find(
   (user) => user._id === selectedUserId
@@ -98,6 +98,28 @@ function Chat() {
   };
 }, []);
 
+useEffect(() => {
+  const handleTyping = ({ sender }) => {
+    if (selectedUser && sender === selectedUser._id) {
+      setTyping(true);
+    }
+  };
+
+  const handleStopTyping = ({ sender }) => {
+    if (selectedUser && sender === selectedUser._id) {
+      setTyping(false);
+    }
+  };
+
+  socket.on("typing", handleTyping);
+  socket.on("stop_typing", handleStopTyping);
+
+  return () => {
+    socket.off("typing", handleTyping);
+    socket.off("stop_typing", handleStopTyping);
+  };
+}, [selectedUser]);
+
   return (
     <div className="flex h-screen bg-slate-100">
       <Sidebar
@@ -112,6 +134,7 @@ function Chat() {
         selectedUser={selectedUser}
         messages={messages}
         sendMessage={sendMessage}
+        typing={typing}
       />
     </div>
   );

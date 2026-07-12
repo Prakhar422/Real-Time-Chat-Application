@@ -9,6 +9,7 @@ function ChatWindow({
   messages,
   currentUser,
   sendMessage,
+  typing,
 }) {
   if (!selectedUser)
     return (
@@ -65,8 +66,16 @@ useEffect(() => {
         <div ref={messagesEndRef}></div>
 
       </div>
+      {typing && (
+  <div className="px-6 pb-2 text-sm italic text-gray-500">
+    {selectedUser.username} is typing...
+  </div>
+)}
 
-      <MessageInput sendMessage={sendMessage} />
+      <MessageInput sendMessage={sendMessage}
+      currentUser={currentUser}
+       selectedUser={selectedUser} />
+      
 
     </div>
   );

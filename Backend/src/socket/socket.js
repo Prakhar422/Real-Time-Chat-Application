@@ -52,22 +52,26 @@ const initializeSocket = (io) => {
     });
 
     //Typing event
-    socket.on("typing", async ({ receiver }) => {
-      const receiverUser = await User.findById(receiver);
+    socket.on("typing", async ({ sender, receiver }) => {
+  const receiverUser = await User.findById(receiver);
 
-      if (receiverUser?.socketId) {
-        io.to(receiverUser.socketId).emit("typing");
-      }
+  if (receiverUser?.socketId) {
+    io.to(receiverUser.socketId).emit("typing", {
+      sender,
     });
+  }
+});
 
     //Stop Typing event
-    socket.on("stop_typing", async ({ receiver }) => {
-      const receiverUser = await User.findById(receiver);
+    socket.on("stop_typing", async ({ sender, receiver }) => {
+  const receiverUser = await User.findById(receiver);
 
-      if (receiverUser?.socketId) {
-        io.to(receiverUser.socketId).emit("stop_typing");
-      }
+  if (receiverUser?.socketId) {
+    io.to(receiverUser.socketId).emit("stop_typing", {
+      sender,
     });
+  }
+});
 
     // Disconnect event
     socket.on("disconnect", async () => {

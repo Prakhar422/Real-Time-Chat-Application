@@ -1,10 +1,12 @@
 import React from 'react'
-
+import { useState, useRef } from "react";
+import socket from "../socket/socket.js";
 import { SendHorizontal } from "lucide-react";
 
-function MessageInput({ sendMessage }) {
+function MessageInput({ sendMessage, currentUser, selectedUser, }) {
 
-    const [text, setText] = React.useState("");
+    const typingTimeout = useRef(null);
+    const [text, setText] = useState("");
     const handleSend = () => {
   if (!text.trim()) return;
 
@@ -22,7 +24,26 @@ function MessageInput({ sendMessage }) {
           placeholder="Type your message..."
           className="flex-1 rounded-full border px-5 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={text}
-            onChange={(e) => setText(e.target.value)}
+            onChange={(e) => {
+  setText(e.target.value);
+
+  if (!currentUser || !selectedUser) return;
+
+  console.log("Emitting typing event:")
+  socket.emit("typing", {
+    sender: currentUser._id,
+    receiver: selectedUser._id,
+  });
+
+  clearTimeout(typingTimeout.current);
+
+  typingTimeout.current = setTimeout(() => {
+    socket.emit("stop_typing", {
+      sender: currentUser._id,
+      receiver: selectedUser._id,
+    });
+  }, 1000);
+}}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 handleSend();
