@@ -1,0 +1,30 @@
+{
+  "name": "node-mongodb-js",
+  "version": "1.0.0",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js"
+  },
+  "author": "Satendra Kumar Parteti",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/satendra03/node-fast-server.git"
+  },
+  "description": "Instantly create simple Node.js server with MongoDB integration",
+  "keywords": [
+    "node",
+    "mongodb",
+    "express",
+    "server"
+  ],
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "mongoose": "^8.15.0",
+    "nodemon": "^3.1.10",
+    "socket.io": "^4.8.3"
+  }
+}
